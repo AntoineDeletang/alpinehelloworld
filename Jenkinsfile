@@ -51,49 +51,28 @@ pipeline {
              }
           }
      }
-       
-     stage('Push image in staging and deploy it') {
-       when {
-              expression { GIT_BRANCH == 'origin/master' }
-            }
+     stage('Connect to VM') {
       agent any
-      environment {
-          HEROKU_API_KEY = credentials('heroku_api_key')
-      }  
       steps {
-          script {
-            sh '''
-              curl https://cli-assets.heroku.com/install.sh | sh
-              heroku container:login
-              heroku create $STAGING || echo "project already exist"
-              heroku container:push -a $STAGING web
-              heroku container:release -a $STAGING web
-            '''
-          }
+        sshagent(['vm_private_key']) {
+            sh 'ssh -o StrictHostKeyChecking=no vagrant@192.168.1.50 "echo Hello from VM"'
         }
+      }
      }
-
-
-
-     stage('Push image in production and deploy it') {
-       when {
-              expression { GIT_BRANCH == 'origin/production' }
-            }
-      agent any
-      environment {
-          HEROKU_API_KEY = credentials('heroku_api_key')
-      }  
+     stage('Deploy') {
+      agent any 
       steps {
-          script {
-            sh '''
-              curl https://cli-assets.heroku.com/install.sh | sh
-              heroku container:login
-              heroku create $PRODUCTION || echo "project already exist"
-              heroku container:push -a $PRODUCTION web
-              heroku container:release -a $PRODUCTION web
-            '''
-          }
+        script {
+          sh '''
+            echo "Cloning repo"
+            git clone https://github.com/AntoineDeletang/alpinehelloworld.git
+            echo "Building image"
+            docker build -t ${ID_DOCKER}/$IMAGE_NAME:$IMAGE_TAG .
+            echo "Running container"
+            docker run --name $IMAGE_NAME -d -p ${PORT_EXPOSED}:5000 -e PORT=5000 ${ID_DOCKER}/$IMAGE_NAME:$IMAGE_TAG
+          '''
         }
+      }
      }
   }
-}
+} 

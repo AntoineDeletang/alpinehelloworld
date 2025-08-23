@@ -52,12 +52,20 @@ pipeline {
           }
      }
      stage('Connect to VM') {
-      agent any
-      steps {
-        sshagent(['vm_private_key']) {
-            sh 'ssh -o StrictHostKeyChecking=no vagrant@192.168.1.50 "echo Hello from VM"'
-        }
+    agent any
+    environment {
+        SSH_KEY = credentials('vm_private_key')
       }
+      steps {
+        script {
+            sh '''
+            echo "$SSH_KEY" > /tmp/vm_key
+            chmod 600 /tmp/vm_key
+            ssh -i /tmp/vm_key -o StrictHostKeyChecking=no vagrant@192.168.1.50 "echo Hello from VM"
+            rm /tmp/vm_key
+            '''
+      }
+     }
      }
      stage('Deploy') {
       agent any 

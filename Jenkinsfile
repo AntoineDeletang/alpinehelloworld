@@ -58,12 +58,7 @@ pipeline {
       }
       steps {
         script {
-            sh '''
-            echo "$SSH_KEY" > /tmp/vm_key
-            chmod 600 /tmp/vm_key
-            ssh -i /tmp/vm_key -o StrictHostKeyChecking=no vagrant@192.168.1.50 "echo Hello from VM"
-            rm /tmp/vm_key
-            '''
+            sh 'ssh -i ~/.ssh/jenkins_vm_key -o StrictHostKeyChecking=no vagrant@192.168.1.50'
       }
      }
      }

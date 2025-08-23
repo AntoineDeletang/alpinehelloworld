@@ -53,19 +53,17 @@ pipeline {
      }
      stage('Connect to VM and deploy') {
     agent any
-    environment {
-        SSH_KEY = credentials('vm_private_key')
-      }
       steps {
         script {
             sh '''
-            ssh -i ~/.ssh/jenkins_vm_key -o StrictHostKeyChecking=no vagrant@192.168.1.50
+            ssh -i ~/.ssh/jenkins_vm_key -o StrictHostKeyChecking=no vagrant@192.168.1.50 '
             echo "Cloning repo"
             git clone https://github.com/AntoineDeletang/alpinehelloworld.git
             echo "Building image"
             docker build -t ${ID_DOCKER}/$IMAGE_NAME:$IMAGE_TAG .
             echo "Running container"
             docker run --name $IMAGE_NAME -d -p ${PORT_EXPOSED}:5000 -e PORT=5000 ${ID_DOCKER}/$IMAGE_NAME:$IMAGE_TAG
+            '
             '''
       }
      }

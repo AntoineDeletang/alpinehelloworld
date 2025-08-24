@@ -1,11 +1,12 @@
+/* import shared library */
+@Library('shared-library')_
+
 pipeline {
      environment {
-       ID_DOCKER = "${ID_DOCKER_PARAMS}"
+       ID_DOCKER = "wawacosy"
        IMAGE_NAME = "alpinehelloworld"
        IMAGE_TAG = "latest"
        PORT_EXPOSED = "80"
-       STAGING = "${ID_DOCKER}-staging"
-       PRODUCTION = "${ID_DOCKER}-production"
      }
      agent none
      stages {
@@ -73,11 +74,10 @@ pipeline {
     }
   }
     post {
-      success {
-        slackSend (color: '#00FF00', message: "SUCCESSFUL: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL}")
-    }
-    failure {
-          slackSend (color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
-    }   
-  }      
+    always {
+      script {
+        slackNotifier currentBuild.result
+      }
+    }  
+  }    
 } 

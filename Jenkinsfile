@@ -63,6 +63,7 @@ pipeline {
             cd alpinehelloworld
             docker build -t ${ID_DOCKER}/$IMAGE_NAME:$IMAGE_TAG .
             echo 'Running container'
+            docker stop $IMAGE_NAME
             docker run --name $IMAGE_NAME -d -p ${PORT_EXPOSED}:5000 -e PORT=5000 ${ID_DOCKER}/$IMAGE_NAME:$IMAGE_TAG 
             "
             """
